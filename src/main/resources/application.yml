@@ -1,0 +1,5 @@
+server:
+  port: 8090
+
+url: https://bitbucket.vodafone.local/rest/api/1.0/projects/stor/repos?limit=100
+#url=https://api.bitbucket.org/2.0/repositories/stor
