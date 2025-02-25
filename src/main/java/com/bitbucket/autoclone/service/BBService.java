@@ -4,36 +4,18 @@ import com.bitbucket.autoclone.model.BBModel;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
-import okhttp3.Response;
 import okhttp3.ResponseBody;
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.config.Registry;
-import org.apache.http.config.RegistryBuilder;
-import org.apache.http.conn.HttpClientConnectionManager;
-import org.apache.http.conn.socket.ConnectionSocketFactory;
-import org.apache.http.conn.socket.PlainConnectionSocketFactory;
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.conn.ssl.TrustStrategy;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 import java.io.*;
-import java.net.URI;
-import java.security.*;
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
@@ -43,20 +25,20 @@ public class BBService {
 
     @Value("${url}")
     String url;
-    @Value("${username}")
-    String username;
-    @Value("${password}")
-    String password;
     @Autowired
     ObjectMapper objectMapper;
     private final OkHttpService okHttpService;
+
     public BBService(OkHttpService okHttpService) {
         this.okHttpService = okHttpService;
     }
-    String encodedUserName = Base64.getEncoder().encodeToString(("kullanici adi" + ":" + "sifre").getBytes());
+
+    //kullanici adi ve sifre
+    String encodedUserName = Base64.getEncoder().encodeToString(("yourusername" + ":" + "yourpassword").getBytes());
     //String encodedPassword = Base64.getEncoder().encodeToString(password.getBytes());
     byte[] decodedBytes = Base64.getDecoder().decode(encodedUserName);
     String authHeader = "Basic " + encodedUserName;
+
     public List<String> requestBB2() throws IOException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
         TrustManager[] trustAllCerts = new TrustManager[]{
                 new X509TrustManager() {
@@ -93,11 +75,9 @@ public class BBService {
         BBModel bbModel = objectMapper.readValue(resp, BBModel.class);
         List<String> bbModelList = new ArrayList<>();
         for (int i = 0; i < bbModel.getValues().size(); i++) {
-            if (bbModel.getValues().get(i).getLinks().getClone().get(0).getName().equalsIgnoreCase("http") &&
-                    bbModel.getValues().get(i).getLinks().getClone().get(0).getHref().contains("-ms")) {
+            if (bbModel.getValues().get(i).getLinks().getClone().get(0).getName().equalsIgnoreCase("http")) {
                 bbModelList.add(bbModel.getValues().get(i).getLinks().getClone().get(0).getHref());
-            } else if(bbModel.getValues().get(i).getLinks().getClone().get(1).getName().equalsIgnoreCase("http") &&
-                    bbModel.getValues().get(i).getLinks().getClone().get(1).getHref().contains("-ms")) {
+            } else if (bbModel.getValues().get(i).getLinks().getClone().get(1).getName().equalsIgnoreCase("http")) {
                 bbModelList.add(bbModel.getValues().get(i).getLinks().getClone().get(1).getHref());
             }
         }
@@ -105,18 +85,18 @@ public class BBService {
     }
 
     public void gitClone() throws IOException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
-        File localRepo = new File("C:\\Users\\ozturkaf\\autoclonedeneme");
+        File localRepo = new File("C:\\Users\\ozturkaf\\nextdeneme");
         List<String> addressList = new ArrayList<>(requestBB2());
         for (int i = 0; i < addressList.size(); i++) {
             String gitCommand = "git clone " + addressList.get(i);
             List<String> command = new ArrayList<>();
-            command.add("cmd.exe");  // Windows'ta CMD'yi çalıştırıyoruz
+            command.add("cmd.exe");  // Windows'ta CMD'yi calistiriyoruz korkacak bisey yok
             command.add("/C");
             command.add("cd " + localRepo);
             command.add(gitCommand);
             ProcessBuilder processBuilder = new ProcessBuilder();
 
-            processBuilder.command("C:/Program Files/Git/git-bash.exe","-c", gitCommand);
+            processBuilder.command("C:/Program Files/Git/git-bash.exe", "-c", gitCommand);
 
 
             processBuilder.directory(localRepo);
